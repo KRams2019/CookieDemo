@@ -1,0 +1,52 @@
+pipeline {
+    agent any 
+    
+    tools{
+        jdk "JAVA_HOME"
+    }
+    
+    stages {
+        stage('git check-out') { 
+            steps {
+                 git url: ''
+            }
+        }
+  
+        stage('Compile') { 
+            steps {
+               bat 'mvn -f devops/pom.xml clean compile'
+            }
+        }
+        
+         stage('Clean Verify') { 
+            steps {
+               bat 'mvn -f devops/pom.xml clean verify'
+            }
+        }
+        
+         stage('Build') { 
+            steps {
+               bat 'mvn -f devops/pom.xml package'
+            }
+        }
+         stage('Junit Result Archieve') { 
+            steps {
+               junit 'devops/target/surefire-reports/TEST-*.xml'
+            }
+        }
+        stage('artifacts-build') { 
+            steps {
+               archiveArtifacts artifacts: 'devops/target/*.?ar'
+            }
+        }
+         stage('archival') { 
+            steps {
+              publishHTML([allowMissing: true, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'target/site/jacoco/', reportFiles: 'index.html', reportName: 'Code Coverage', reportTitles: ''])
+            }
+        }
+        
+        
+               
+    }
+}
+
